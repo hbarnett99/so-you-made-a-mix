@@ -1,16 +1,14 @@
 'use client';
 import { TextGenerateEffect } from '../ui/text-generate-effect';
 
-const words = 'So, you made a mix?';
+const words1 = 'So, you made a mix?';
 
 const TitleWords = () => {
   return (
-    <>
-      <TextGenerateEffect
-        words={words}
-        className=''
-      />
-    </>
+    <TextGenerateEffect
+      words={words1}
+      className=''
+    />
   );
 };
 
