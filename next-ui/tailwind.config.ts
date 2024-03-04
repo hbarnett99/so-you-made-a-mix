@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-
+const { nextui } = require('@nextui-org/theme');
 const { fontFamily } = require('tailwindcss/defaultTheme');
 
 const config = {
@@ -79,7 +79,7 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [nextui()],
 } satisfies Config;
 
 export default config;

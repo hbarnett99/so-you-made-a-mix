@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 // import { ThemeProvider } from "next-themes";
-import { ThemeProvider } from '@/components/theme-provider';
+import { Providers } from '@/components/providers/providers';
 import { cn } from '@/lib/utils';
 
 export const fontSans = Inter({
@@ -27,14 +27,16 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <ThemeProvider
+        <Providers
           attribute='class'
           defaultTheme='dark'
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-        </ThemeProvider>
+          <main className='flex-grow h-screen justify-between p-24'>
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

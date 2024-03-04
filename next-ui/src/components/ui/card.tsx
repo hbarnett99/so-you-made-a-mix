@@ -17,6 +17,22 @@ const Card = React.forwardRef<
 ));
 Card.displayName = 'Card';
 
+
+const InvisibleCard = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'rounded-xl text-card-foreground shadow',
+      className,
+    )}
+    {...props}
+  />
+));
+InvisibleCard.displayName = 'InvisibleCard';
+
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -84,4 +100,5 @@ export {
   CardTitle,
   CardDescription,
   CardContent,
+  InvisibleCard
 };
