@@ -39,11 +39,10 @@ const TitleWords = ({ className }: { className?: string }) => {
   const searchForPlaylist = async (e: FormEvent) => {
     e.preventDefault();
 
-    // Animate the motion.div when the form is submitted
     await controls.start({
-      y: -20, // Move up
-      opacity: 0, // Fade out
-      transition: {duration: .4}, // Set the duration to 0.8 seconds (adjust as needed)
+      y: -20,
+      opacity: 0,
+      transition: {duration: .4},
     });
 
     const spotifyUrlOrId = scope.current.querySelector('input').value;
