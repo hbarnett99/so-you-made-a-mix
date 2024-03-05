@@ -1,5 +1,5 @@
-import { Table } from "@/components/ui/table";
-import PlaylistCards from "./playlist-cards";
+import { Table } from '@/components/ui/table';
+import PlaylistCards from './playlist-cards';
 
 const PlaylistAnalysis = async ({
   params,
@@ -8,12 +8,13 @@ const PlaylistAnalysis = async ({
   params: { playlistId: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
+  console.log(params.playlistId);
 
-    console.log(params.playlistId)
-
-  return <div>
-    <PlaylistCards />
-  </div>;
+  return (
+    <div>
+      <PlaylistCards />
+    </div>
+  );
 };
 
 export default PlaylistAnalysis;

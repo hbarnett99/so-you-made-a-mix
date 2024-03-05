@@ -9,7 +9,7 @@ import {
 import { Image } from '@nextui-org/image';
 import { stagger, useAnimate } from 'framer-motion';
 import { useEffect } from 'react';
-import PlaylistCardInternal, { Playlist } from './playlist-card-internal';
+import PlaylistCardInternal, { Playlist } from './playlist-summary-internal';
 
 const mockPlaylist = {
   images: [
@@ -33,7 +33,7 @@ const mockPlaylist = {
   owner: { display_name: 'Henry Barnett' },
 };
 
-const PlaylistCard = async () => {
+const PlaylistSummary = async () => {
 
   const playlist_id = '6kgnKWae3wPZyTetaNjSVu';
 
@@ -47,4 +47,4 @@ const PlaylistCard = async () => {
   return <PlaylistCardInternal playlist={playlist} />;
 };
 
-export default PlaylistCard;
+export default PlaylistSummary;

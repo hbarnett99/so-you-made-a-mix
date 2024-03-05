@@ -23,7 +23,7 @@ export interface Playlist {
   owner: { display_name: string };
 }
 
-const PlaylistCardInternal = ({ playlist }: { playlist?: any }) => {
+const PlaylistSummaryInternal = ({ playlist }: { playlist?: any }) => {
   const [scope1, animate1] = useAnimate();
 
 //   useEffect(() => {
@@ -59,4 +59,4 @@ useEffect(() => {console.log(playlist)}, [playlist])
   );
 };
 
-export default PlaylistCardInternal;
+export default PlaylistSummaryInternal;

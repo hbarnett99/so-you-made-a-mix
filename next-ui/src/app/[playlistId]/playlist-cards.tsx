@@ -1,8 +1,7 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
 import { Song as Track } from '@/lib/types';
-import { Card } from '@nextui-org/react';
-import Image from 'next/image';
 
 const demoTrack: Track = {
   albumArt:
@@ -57,27 +56,9 @@ const PlaylistCard = ({ track }: { track: Track }) => (
   </Card>
 );
 
-// const PlaylistCard = ({ track }: { track: Track }) => (
-//   <Card className='p-4 hover:bg-accent transition duration-300 border rounded-lg'>
-//     <div className='grid grid-cols-2 auto-cols-auto space-x-4 h-full'>
-//       <div className='flex space-x-4'>
-//         <img
-//           src={track.albumArt}
-//           alt={`${track.name}, by ${track.artists.join(', ')} - album art`}
-//           className='rounded-md h-24'
-//         />
-//         <span className='self-center'>
-//           <p className='text-lg font-semibold'>{track.name}</p>
-//           <p className='text-sm text-gray-400'>{`${track.artists.join(', ')}`}</p>
-//         </span>
-//       </div>
-//     </div>
-//   </Card>
-// );
-
 const PlaylistCards = () => {
   return (
-    <div className='space-y-2 overflow-auto'>
+    <div className='space-y-2 overflow-auto lg:pb-24 md:pb-16 pb-8'>
       {myArr.map((v, i) => (
         <PlaylistCard
           track={demoTrack}

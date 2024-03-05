@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { FormEvent, useEffect } from 'react';
 import { motion, stagger, useAnimate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,8 @@ const TitleWords = ({ className }: { className?: string }) => {
 
   const nav = useRouter();
 
-  const searchForPlaylist = () => {
+  const searchForPlaylist = (e: FormEvent) => {
+    e.preventDefault();
     const spotifyUrlOrId = scope.current.querySelector('input').value; // Assuming Input is a wrapper for a native input element
     nav.push(
       spotifyUrlOrId
@@ -49,7 +50,7 @@ const TitleWords = ({ className }: { className?: string }) => {
     >
       <div className={cn('font-bold', className)}>
         <div className='mt-4 flex'>
-          <div className='dark:text-white text-black text-[7em] leading-snug tracking-wide'>
+          <div className='dark:text-white text-black sm:text-[7em] text-[5em] leading-snug tracking-wide'>
             {wordsArray.map((word, idx) => {
               return (
                 <motion.span
@@ -64,16 +65,17 @@ const TitleWords = ({ className }: { className?: string }) => {
         </div>
       </div>
 
-      <motion.span className='opacity-0 mt-3 flex items-center space-x-2 pr-2'>
-        <Input placeholder='Spotify Playlist Link or ID' />
-        <Button
-          type='submit'
-          size={'icon'}
-          onClick={searchForPlaylist}
-        >
-          <ChevronRight />
-        </Button>
-      </motion.span>
+      <form onSubmit={(e) => {searchForPlaylist(e)}}>
+        <motion.span className='opacity-0 mt-3 flex items-center space-x-2 sm:pr-2'>
+          <Input placeholder='Spotify Playlist Link or ID' />
+          <Button
+            type='submit'
+            size={'icon'}
+          >
+            <ChevronRight />
+          </Button>
+        </motion.span>
+      </form>
     </motion.div>
   );
 };
