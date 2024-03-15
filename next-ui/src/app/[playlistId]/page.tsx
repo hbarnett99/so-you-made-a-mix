@@ -1,5 +1,7 @@
-import { Table } from '@/components/ui/table';
+import Loading from '@/components/ui/loading';
+import NoPlaylist from './no-playlist';
 import PlaylistCards from './playlist-cards';
+import { motion } from 'framer-motion';
 
 const PlaylistAnalysis = async ({
   params,
@@ -8,11 +10,14 @@ const PlaylistAnalysis = async ({
 }) => {
   console.log(params.playlistId);
 
-  return (
-    <div>
-      <PlaylistCards />
-    </div>
-  );
+  const loading = false;
+  const doesExist = params.playlistId.length > 3;
+
+  const whatToRender = () => {
+    
+  };
+
+  return <div className='h-full'>{doesExist ? <PlaylistCards /> : <NoPlaylist />}</div>;
 };
 
 export default PlaylistAnalysis;
