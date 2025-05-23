@@ -4,11 +4,12 @@ import PlaylistCards from './playlist-cards';
 import { motion } from 'framer-motion';
 import { getSpotifyPlaylistById } from '@/lib/spotify.util';
 
-const PlaylistAnalysis = async ({
-  params,
-}: {
-  params: { playlistId: string };
-}) => {
+const PlaylistAnalysis = async (
+  props: {
+    params: Promise<{ playlistId: string }>;
+  }
+) => {
+  const params = await props.params;
   console.log(params.playlistId);
 
   const loading = false;
