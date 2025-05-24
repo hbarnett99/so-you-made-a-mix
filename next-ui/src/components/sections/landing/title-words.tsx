@@ -4,7 +4,7 @@
 import { motion, useAnimation } from 'framer-motion';
 import { FormEvent, useEffect } from 'react';
 import { stagger, useAnimate } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
@@ -22,17 +22,29 @@ const TitleWords = ({ className }: { className?: string }) => {
   let wordsArray = words.split(' ');
 
   useEffect(() => {
-    animate(
-      'span',
-      {
-        opacity: 1,
-      },
-      {
-        duration: 4,
-        delay: stagger(0.3),
-      },
-    );
-  }, [scope.current]);
+    const animateWords = async () => {
+      const spans = scope.current.querySelectorAll('span');
+      if (!spans.length) return;
+
+      // Animate the first word
+      await animate(spans[0], { opacity: 1 }, { duration: 0.4 });
+
+      // Add a custom delay before the second word
+      await new Promise((res) => setTimeout(res, 500));
+
+      // Animate the second word
+      if (spans[1]) {
+        await animate(spans[1], { opacity: 1 }, { duration: 0.3 });
+      }
+
+      // Animate the rest without extra delay
+      for (let i = 2; i < spans.length; i++) {
+        await animate(spans[i], { opacity: 1 }, { duration: 0.3 });
+      }
+    };
+
+    animateWords();
+  }, [animate, scope]);
 
   const nav = useRouter();
 

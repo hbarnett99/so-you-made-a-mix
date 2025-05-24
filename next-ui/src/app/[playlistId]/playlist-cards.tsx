@@ -1,21 +1,21 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { searchBeatportBySpotifyTrack } from '@/lib/beatport.util';
+import { TrackWithAudioFeatures } from '@/types';
+import { searchBeatportBySpotifyTrack } from '@/utils/beatport.util';
 import { Playlist, PlaylistedTrack, Track } from '@spotify/web-api-ts-sdk';
 import { motion, stagger, useAnimate } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect } from 'react';
 
-
 const PlaylistCard = ({
   playlistedTrack,
 }: {
-  playlistedTrack: PlaylistedTrack<Track>;
+  playlistedTrack: PlaylistedTrack<TrackWithAudioFeatures>;
 }) => {
   const track = playlistedTrack.track;
 
-  console.log(track)
+  // console.log(track?.audioFeatures)
 
   return (
     <motion.div className='opacity-0'>
@@ -58,7 +58,11 @@ const PlaylistCard = ({
   );
 };
 
-const PlaylistCards = ({ playlist }: { playlist: Playlist<Track> }) => {
+const PlaylistCards = ({
+  playlist,
+}: {
+  playlist: Playlist<TrackWithAudioFeatures>;
+}) => {
   const [scope, animate] = useAnimate();
 
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { motion, useAnimation } from 'framer-motion';
 import { FormEvent, useEffect } from 'react';
 import { stagger, useAnimate } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Loader2, LoaderIcon } from 'lucide-react';

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from 'next-themes';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
+import { Providers } from '@/components/providers';
 
 export const fontSans = Inter({
   subsets: ['latin'],
@@ -19,22 +19,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en'>
+    <html 
+      suppressHydrationWarning
+      lang='en' 
+      className="dark"
+    >
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
           fontSans.variable,
         )}
       >
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='dark'
-          enableSystem
-        >
+        <Providers>
           <main className='flex h-screen flex-col justify-between lg:p-24 md:p-16 p-8'>
             {children}
           </main>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
