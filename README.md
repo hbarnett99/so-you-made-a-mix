@@ -9,4 +9,4 @@ This relied on 2 APIs.
 
 Access to both has been nuked. Beatport just stopped handing out access secrets, and Spotify deprecated their API after it was being abused to train AI models (this is why we can't have nice things...)
 
-Honestly, I could live without the beatport API, just do a search for the ISBN, but the Spotify change is a low blow. I doubt these features will open back up again in the near future, so this project is dead in the water.
+Honestly, I could live without the Beatport API, just do a search for the ISRC, but the Spotify change is a low blow. I doubt these features will open back up again in the near future, so this project is dead in the water.
