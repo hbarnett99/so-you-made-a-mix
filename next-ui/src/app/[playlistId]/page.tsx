@@ -1,8 +1,6 @@
-import Loading from '@/components/ui/loading';
 import NoPlaylist from './no-playlist';
 import PlaylistCards from './playlist-cards';
-import { motion } from 'framer-motion';
-import { getSpotifyPlaylistById } from '@/utils/spotify.util';
+import { getEnhancedPlaylistWithTidal } from '@/utils/enhanced-playlist.util';
 
 const PlaylistAnalysis = async (
   props: {
@@ -10,19 +8,28 @@ const PlaylistAnalysis = async (
   }
 ) => {
   const params = await props.params;
-  console.log(params.playlistId);
+  console.log(`Loading playlist: ${params.playlistId}`);
 
-const playlist = await getEnhancedPlaylistWithTidal(params.playlistId);
+  try {
+    const enhancedPlaylist = await getEnhancedPlaylistWithTidal(params.playlistId);
 
-  return (
-    <div className='h-full'>
-      {!!playlist ? <PlaylistCards playlist={playlist} /> : <NoPlaylist />}
-    </div>
-  );
+    return (
+      <div className='h-full'>
+        {enhancedPlaylist ? (
+          <PlaylistCards playlist={enhancedPlaylist} />
+        ) : (
+          <NoPlaylist />
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error('Failed to load playlist:', error);
+    return (
+      <div className='h-full'>
+        <NoPlaylist />
+      </div>
+    );
+  }
 };
 
 export default PlaylistAnalysis;
-function getEnhancedPlaylistWithTidal(playlistId: string) {
-  throw new Error('Function not implemented.');
-}
-

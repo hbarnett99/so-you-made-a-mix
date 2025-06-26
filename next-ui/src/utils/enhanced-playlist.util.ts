@@ -1,175 +1,93 @@
-import { EnhancedPlaylist } from "@/types/enhanced-playlist.types";
-import { TrackWithAudioFeatures } from "@/types/spotify.types";
-import { EnhancedTrack } from "@/types/tidal.types";
-import { Playlist, Track } from "@spotify/web-api-ts-sdk";
+import { Track } from "@spotify/web-api-ts-sdk";
 import { getSpotifyPlaylistById } from "./spotify.util";
-import { matchSpotifyTracksToTidal, getMatchStatistics } from "./track-matching.util";
+import { matchSpotifyTracksToTidal, calculateMatchingStats } from "./track-matching.util";
+import { EnhancedPlaylist } from "@/types/enhanced-playlist.types";
 
-// Original function for backward compatibility
-export const getPlaylistWithAudioFeatures = async (
-  playlistId: string,
-): Promise<Playlist<TrackWithAudioFeatures> | undefined> => {
-  const playlistData = await getSpotifyPlaylistById(playlistId);
-  if (!playlistData) return undefined;
-
-  const trackIds = playlistData.tracks.items
-    .map((item) => item.track?.id)
-    .filter((id): id is string => !!id);
-
-  const audioFeatures = await getSpotifyTracksWithAudioFeatures(trackIds);
-
-  // Map audio features to the correct track by id
-  const audioFeaturesMap = new Map(
-    (audioFeatures ?? []).map((af) => [af.id, af]),
-  );
-
-  const playlist: Playlist<TrackWithAudioFeatures> = {
-    ...playlistData,
-    tracks: {
-      ...playlistData.tracks,
-      items: playlistData.tracks.items.map((item) => {
-        const track = item.track;
-        if (!track) return item; // If there's no track, return the item as is
-
-        const audioFeature = audioFeaturesMap.get(track.id);
-        return {
-          ...item,
-          track: {
-            ...track,
-            audioFeatures: audioFeature,
-          } as TrackWithAudioFeatures,
-        };
-      }),
-    },
-  };
-
-  return playlist;
-};
-
-// New enhanced function that includes TIDAL data
+/**
+ * Get a Spotify playlist and enhance it with TIDAL track data
+ */
 export const getEnhancedPlaylistWithTidal = async (
   playlistId: string,
 ): Promise<EnhancedPlaylist | undefined> => {
   console.log(`Fetching enhanced playlist data for: ${playlistId}`);
   
-  const playlistData = await getSpotifyPlaylistById(playlistId);
-  if (!playlistData) {
-    console.log('Playlist not found');
+  // Get the Spotify playlist
+  const spotifyPlaylist = await getSpotifyPlaylistById(playlistId);
+  if (!spotifyPlaylist) {
+    console.log('Spotify playlist not found');
     return undefined;
   }
 
-  console.log(`Found playlist: ${playlistData.name} with ${playlistData.tracks.items.length} tracks`);
+  console.log(`Found Spotify playlist: "${spotifyPlaylist.name}" with ${spotifyPlaylist.tracks.items.length} tracks`);
 
-  // Get audio features for Spotify tracks
-  const trackIds = playlistData.tracks.items
-    .map((item) => item.track?.id)
-    .filter((id): id is string => !!id);
-
-  const audioFeatures = await getSpotifyTracksWithAudioFeatures(trackIds);
-  const audioFeaturesMap = new Map(
-    (audioFeatures ?? []).map((af) => [af.id, af]),
-  );
-
-  // Extract Spotify tracks for TIDAL matching
-  const spotifyTracks: Track[] = playlistData.tracks.items
+  // Extract valid Spotify tracks (filter out nulls and local tracks)
+  const spotifyTracks: Track[] = spotifyPlaylist.tracks.items
     .map((item) => item.track)
-    .filter((track): track is Track => !!track);
+    .filter((track): track is Track => !!track && (track as Track).is_local !== undefined && !(track as Track).is_local);
 
-  console.log('Matching tracks with TIDAL...');
+  console.log(`Processing ${spotifyTracks.length} non-local tracks for TIDAL matching...`);
   
-  // Match with TIDAL (this will take a moment)
+  // Match all tracks with TIDAL
   const enhancedTracks = await matchSpotifyTracksToTidal(spotifyTracks);
   
-  // Get matching statistics
-  const tidalMatchStats = getMatchStatistics(enhancedTracks);
+  // Calculate matching statistics
+  const tidalMatchingStats = calculateMatchingStats(enhancedTracks);
   
   console.log('TIDAL matching complete:', {
-    total: tidalMatchStats.total,
-    matched: tidalMatchStats.matched,
-    matchRate: `${tidalMatchStats.matchRate.toFixed(1)}%`,
-    tracksWithISRC: tidalMatchStats.tracksWithISRC,
-    isrcMatchRate: `${tidalMatchStats.isrcMatchRate.toFixed(1)}%`
+    total: tidalMatchingStats.total,
+    matched: tidalMatchingStats.matched,
+    matchRate: `${tidalMatchingStats.matchRate.toFixed(1)}%`,
+    isrcAvailability: `${tidalMatchingStats.isrcAvailabilityRate.toFixed(1)}%`,
+    noIsrc: tidalMatchingStats.noIsrc,
+    notFound: tidalMatchingStats.notFound,
+    errors: tidalMatchingStats.errors,
   });
 
-  // Build enhanced playlist
+  // Build the enhanced playlist
   const enhancedPlaylist: EnhancedPlaylist = {
-    ...playlistData,
+    ...spotifyPlaylist,
     tracks: {
-      ...playlistData.tracks,
-      items: playlistData.tracks.items.map((item, index) => {
-        const track = item.track;
-        if (!track) return { ...item, track: enhancedTracks[index] };
+      ...spotifyPlaylist.tracks,
+      items: spotifyPlaylist.tracks.items.map((item) => {
+        // Force item.track to be a Track (never an Episode)
+        const track = item.track as Track;
 
-        const audioFeature = audioFeaturesMap.get(track.id);
-        const enhancedTrack = enhancedTracks[index];
+        if (!track || track.is_local) {
+          return {
+            ...item,
+            track: {
+              isrc: null,
+              spotify: track,
+              tidal: null,
+              matchStatus: 'no_isrc' as const,
+            },
+          };
+        }
 
-        // Merge audio features into the enhanced track
-        const finalTrack: EnhancedTrack = {
-          ...enhancedTrack,
-          spotify: {
-            ...enhancedTrack.spotify,
-            // Add audio features if available
-            ...(audioFeature && { audioFeatures: audioFeature }),
-          } as any, // Type assertion needed due to audio features extension
-        };
+        // Find the corresponding enhanced track
+        const enhancedTrack = enhancedTracks.find(et => et.spotify.id === track.id);
 
-        return {
-          ...item,
-          track: finalTrack,
-        };
-      }),
-    },
-    tidalMatchStats,
-  };
+        if (!enhancedTrack) {
+          console.warn(`Could not find enhanced track for ${track.name}`);
+          return {
+            ...item,
+            track: {
+              isrc: track.external_ids?.isrc || null,
+              spotify: track,
+              tidal: null,
+              matchStatus: 'error' as const,
+            },
+          };
+        }
 
-  return enhancedPlaylist;
-};
-
-// Helper function to get just the TIDAL data for existing playlists
-export const enhancePlaylistWithTidal = async (
-  playlist: Playlist<TrackWithAudioFeatures>
-): Promise<EnhancedPlaylist> => {
-  console.log(`Enhancing existing playlist with TIDAL data: ${playlist.name}`);
-
-  // Extract Spotify tracks for TIDAL matching
-  const spotifyTracks: Track[] = playlist.tracks.items
-    .map((item) => item.track)
-    .filter((track): track is Track => !!track);
-
-  console.log('Matching tracks with TIDAL...');
-  
-  // Match with TIDAL
-  const enhancedTracks = await matchSpotifyTracksToTidal(spotifyTracks);
-  
-  // Get matching statistics
-  const tidalMatchStats = getMatchStatistics(enhancedTracks);
-  
-  console.log('TIDAL matching complete:', {
-    total: tidalMatchStats.total,
-    matched: tidalMatchStats.matched,
-    matchRate: `${tidalMatchStats.matchRate.toFixed(1)}%`,
-  });
-
-  // Build enhanced playlist
-  const enhancedPlaylist: EnhancedPlaylist = {
-    ...playlist,
-    tracks: {
-      ...playlist.tracks,
-      items: playlist.tracks.items.map((item, index) => {
-        const enhancedTrack = enhancedTracks[index];
-        
         return {
           ...item,
           track: enhancedTrack,
         };
       }),
     },
-    tidalMatchStats,
+    tidalMatchingStats,
   };
 
   return enhancedPlaylist;
 };
-
-function getSpotifyTracksWithAudioFeatures(trackIds: string[]) {
-    throw new Error("Function not implemented.");
-}

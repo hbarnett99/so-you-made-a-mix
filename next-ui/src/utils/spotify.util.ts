@@ -1,4 +1,3 @@
-import { TrackWithAudioFeatures } from '@/types/spotify.types';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 
 const sdk = SpotifyApi.withClientCredentials(
@@ -7,10 +6,11 @@ const sdk = SpotifyApi.withClientCredentials(
   ['playlist-read-private', 'playlist-read-collaborative'],
 );
 
-export const getSpotifyPlaylistById = async (playlistId: string) => {
+export const getSpotifyPlaylistById = async (playlistId: string): Promise<Playlist | undefined> => {
   try {
     return await sdk.playlists.getPlaylist(playlistId);
-  } catch {
+  } catch (error) {
+    console.error(`Failed to fetch Spotify playlist ${playlistId}:`, error);
     return undefined;
   }
 };
