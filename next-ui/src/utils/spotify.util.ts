@@ -1,4 +1,4 @@
-import { TrackWithAudioFeatures } from '@/types';
+import { TrackWithAudioFeatures } from '@/types/spotify.types';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 
 const sdk = SpotifyApi.withClientCredentials(

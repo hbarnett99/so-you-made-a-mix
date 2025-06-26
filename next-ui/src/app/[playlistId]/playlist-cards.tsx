@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { TrackWithAudioFeatures } from '@/types';
+import { TrackWithAudioFeatures } from '@/types/spotify.types';
 import { searchBeatportBySpotifyTrack } from '@/utils/beatport.util';
 import { Playlist, PlaylistedTrack, Track } from '@spotify/web-api-ts-sdk';
 import { motion, stagger, useAnimate } from 'framer-motion';

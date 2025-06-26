@@ -12,7 +12,7 @@ const PlaylistAnalysis = async (
   const params = await props.params;
   console.log(params.playlistId);
 
-  const playlist = await getSpotifyPlaylistById(params.playlistId);
+const playlist = await getEnhancedPlaylistWithTidal(params.playlistId);
 
   return (
     <div className='h-full'>
@@ -22,3 +22,7 @@ const PlaylistAnalysis = async (
 };
 
 export default PlaylistAnalysis;
+function getEnhancedPlaylistWithTidal(playlistId: string) {
+  throw new Error('Function not implemented.');
+}
+
