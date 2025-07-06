@@ -119,3 +119,46 @@ export async function getTidalTrackById(trackId: string): Promise<TidalTrack | n
     return null;
   }
 }
+
+export async function searchTidalByMultipleISRC(isrcs: string[]): Promise<Map<string, TidalTrack>> {
+  try {
+    const token = await getTidalAccessToken();
+    
+    // Build query with multiple ISRC codes
+    const isrcQuery = isrcs.map(isrc => `isrc:${encodeURIComponent(isrc)}`).join(' OR ');
+    
+    const response = await fetch(
+      `${tidalBaseUrl}/v2/searchresults/tracks?query=${encodeURIComponent(isrcQuery)}&limit=${isrcs.length}&countryCode=US`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.tidal.v1+json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return new Map(); // No tracks found
+      }
+      const errorData: TidalError = await response.json();
+      throw new Error(`TIDAL multiple ISRC search failed: ${errorData.userMessage}`);
+    }
+
+    const data: TidalSearchResponse = await response.json();
+    
+    // Create a map of ISRC -> TidalTrack
+    const resultMap = new Map<string, TidalTrack>();
+    
+    data.tracks.items.forEach(track => {
+      if (track.isrc) {
+        resultMap.set(track.isrc, track);
+      }
+    });
+    
+    return resultMap;
+  } catch (error) {
+    console.error(`Failed to search TIDAL by multiple ISRCs:`, error);
+    return new Map();
+  }
+}

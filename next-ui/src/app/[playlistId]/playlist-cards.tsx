@@ -8,17 +8,14 @@ import { searchBeatportBySpotifyTrack } from '@/utils/beatport.util';
 import { motion, stagger, useAnimate } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect } from 'react';
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { formatDuration } from '@/utils/duration.util';
 const TrackCard = ({ enhancedTrack }: { enhancedTrack: EnhancedTrack }) => {
   const { spotify, tidal, matchStatus, isrc } = enhancedTrack;
-
-  // Format duration
-  const formatDuration = (durationMs: number) => {
-    const totalSeconds = Math.floor(durationMs / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
 
   // Get the best available image
   const getTrackImage = () => {
@@ -154,8 +151,8 @@ const PlaylistCards = ({ playlist }: { playlist: EnhancedPlaylist }) => {
   // Add this helper function
   const formatPlaylistDuration = (items: EnhancedPlaylistItem[]) => {
     const totalMs = items.reduce((sum, item) => sum + item.track.spotify.duration_ms, 0);
-    const totalMinutes = Math.floor(totalMs / 60000);
-    const hours = Math.floor(totalMinutes / 60);
+    const totalMinutes = Math.round(totalMs / 60000);
+    const hours = Math.round(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
     if (hours > 0) {
@@ -169,7 +166,7 @@ const PlaylistCards = ({ playlist }: { playlist: EnhancedPlaylist }) => {
   return (
     <>
       {/* Playlist Header */}
-      <div className="mb-6">
+      <motion.div ref={scope} className="mb-6">
         <div className="flex items-start space-x-6">
           <Image
             src={playlist.images[0]?.url || '/no-album-art.png'}
@@ -192,34 +189,62 @@ const PlaylistCards = ({ playlist }: { playlist: EnhancedPlaylist }) => {
               <h3 className="text-lg font-semibold">TIDAL Integration</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.matched, playlist.tracks.items.filter(item => item.track.isrc).length)}`}>
-                    {tidalMatchingStats.matched}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Matched</div>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.matched, playlist.tracks.items.filter(item => item.track.isrc).length)}`}>
+                        {tidalMatchingStats.matched}/{tidalMatchingStats.total}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Matched</div>
+                    </TooltipTrigger>
+                    <TooltipContent side='bottom'>
+                      Tracks not found in TIDAL
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.matchRate, playlist.tracks.items.filter(item => item.track.isrc).length)}`}>
-                    {tidalMatchingStats.matchRate.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">Match Rate</div>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.matchRate, playlist.tracks.items.filter(item => item.track.isrc).length)}`}>
+                        {tidalMatchingStats.matchRate.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">Match Rate</div>
+                    </TooltipTrigger>
+                    <TooltipContent side='bottom'>
+                      Percentage of tracks matched to TIDAL
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.noIsrc, playlist.tracks.total, true)}`}>
-                    {tidalMatchingStats.noIsrc}
-                  </div>
-                  <div className="text-sm text-muted-foreground">No ISRC</div>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.noIsrc, playlist.tracks.total, true)}`}>
+                        {tidalMatchingStats.noIsrc}/{tidalMatchingStats.total}
+                      </div>
+                      <div className="text-sm text-muted-foreground">No ISRC</div>
+                    </TooltipTrigger>
+                    <TooltipContent side='bottom'>
+                      No. of tracks without ISRCs (local tracks)
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.isrcAvailabilityRate, playlist.tracks.total)}`}>
-                    {tidalMatchingStats.isrcAvailabilityRate.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">ISRC Available</div>
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger>
+                      <div className={`text-2xl font-bold ${getStatColour(tidalMatchingStats.isrcAvailabilityRate, playlist.tracks.total)}`}>
+                        {tidalMatchingStats.isrcAvailabilityRate.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">ISRC Available</div>
+                    </TooltipTrigger>
+                    <TooltipContent side='bottom'>
+                      Percentage of tracks with ISRCs available
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Track List */}
       <motion.div

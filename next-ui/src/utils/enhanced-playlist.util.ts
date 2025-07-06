@@ -20,10 +20,10 @@ export const getEnhancedPlaylistWithTidal = async (
 
   console.log(`Found Spotify playlist: "${spotifyPlaylist.name}" with ${spotifyPlaylist.tracks.items.length} tracks`);
 
-  // Extract valid Spotify tracks (filter out nulls and local tracks)
+  // Extract valid Spotify tracks (filter out nulls, we are keeping locals)
   const spotifyTracks: Track[] = spotifyPlaylist.tracks.items
     .map((item) => item.track)
-    .filter((track): track is Track => !!track && (track as Track).is_local !== undefined && !(track as Track).is_local);
+    .filter((track): track is Track => !!track);
 
   console.log(`Processing ${spotifyTracks.length} non-local tracks for TIDAL matching...`);
   

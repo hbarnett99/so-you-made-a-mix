@@ -1,5 +1,5 @@
 import { Track } from '@spotify/web-api-ts-sdk';
-import { searchTidalByISRC } from '@/utils/tidal.util';
+import { searchTidalByISRC, searchTidalByMultipleISRC } from '@/utils/tidal.util';
 import { EnhancedTrack, TidalMatchingStats } from '@/types/enhanced-track.types';
 
 /**
@@ -48,32 +48,72 @@ export async function matchSpotifyTrackToTidal(spotifyTrack: Track): Promise<Enh
 /**
  * Match multiple Spotify tracks to TIDAL with concurrency control
  */
+/**
+ * Match multiple Spotify tracks to TIDAL using batch ISRC search
+ */
 export async function matchSpotifyTracksToTidal(
-    spotifyTracks: Track[],
-    concurrency: number = 5
+  spotifyTracks: Track[],
+  batchSize: number = 50
 ): Promise<EnhancedTrack[]> {
-    const results: EnhancedTrack[] = [];
+  console.log(`Starting TIDAL matching for ${spotifyTracks.length} tracks with batch size: ${batchSize}`);
+  
+  const results: EnhancedTrack[] = [];
+  
+  // Process tracks in batches
+  for (let i = 0; i < spotifyTracks.length; i += batchSize) {
+    const batch = spotifyTracks.slice(i, i + batchSize);
+    
+    console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(spotifyTracks.length / batchSize)}`);
+    
+    // Extract ISRCs from this batch
+    const tracksWithISRC = batch
+      .map((track, index) => ({ track, originalIndex: i + index, isrc: track.external_ids?.isrc }))
+      .filter((item): item is { track: Track; originalIndex: number; isrc: string } => !!item.isrc);
+    
+    // Get TIDAL matches for all ISRCs in this batch
+    const isrcs = tracksWithISRC.map(item => item.isrc);
+    const tidalMatches = isrcs.length > 0 ? await searchTidalByMultipleISRC(isrcs) : new Map();
+    
+    // Process each track in the batch
+    const batchResults = batch.map((spotifyTrack) => {
+      const isrc = spotifyTrack.external_ids?.isrc || null;
+      
+      const baseTrack: EnhancedTrack = {
+        isrc,
+        spotify: spotifyTrack,
+        tidal: null,
+        matchStatus: 'no_isrc',
+      };
 
-    console.log(`Starting TIDAL matching for ${spotifyTracks.length} tracks with concurrency: ${concurrency}`);
+      if (!isrc) {
+        return baseTrack;
+      }
 
-    // Process tracks in batches to avoid rate limiting
-    for (let i = 0; i < spotifyTracks.length; i += concurrency) {
-        const batch = spotifyTracks.slice(i, i + concurrency);
+      const tidalTrack = tidalMatches.get(isrc);
+      
+      if (!tidalTrack) {
+        return {
+          ...baseTrack,
+          matchStatus: 'not_found' as const,
+        };
+      }
 
-        console.log(`Processing batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(spotifyTracks.length / concurrency)}`);
-
-        const batchPromises = batch.map(track => matchSpotifyTrackToTidal(track));
-        const batchResults = await Promise.all(batchPromises);
-
-        results.push(...batchResults);
-
-        // Small delay between batches to be respectful to the API
-        if (i + concurrency < spotifyTracks.length) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
+      return {
+        ...baseTrack,
+        tidal: tidalTrack,
+        matchStatus: 'matched' as const,
+      };
+    });
+    
+    results.push(...batchResults);
+    
+    // Small delay between batches to be respectful to the API
+    if (i + batchSize < spotifyTracks.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
-
-    return results;
+  }
+  
+  return results;
 }
 
 /**
