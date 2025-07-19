@@ -66,7 +66,7 @@ export async function searchTidalByISRC(isrc: string): Promise<TidalTrack | null
       {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.tidal.v1+json',
+          'Accept': 'application/vnd.tidal.v2+json',
         },
       }
     );
